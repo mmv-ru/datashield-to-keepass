@@ -1,0 +1,7 @@
+# Ignore files
+*.bak
+*.pdb
+Log.txt
+Cache/*
+Out/*
+

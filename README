@@ -1,0 +1,22 @@
+Datashield2Keepass
+=======================
+
+Converter for Ultrasoft Datashield XML export format to Keepass CSV
+
+For installation and documentation, please refer to:
+http://www.dokuwiki.org/plugin:aceeditor
+
+Project at github: https://github.com/mmv-ru
+
+Authors: Mikhail Moskalev <mmv.rus@gmail.com>
+
+This program is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; version 2 of the License
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+See the LICENSE file for details
