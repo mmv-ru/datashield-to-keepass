@@ -4,4 +4,5 @@
 Log.txt
 Cache/*
 Out/*
-
+/.coverage
+*.pyc
