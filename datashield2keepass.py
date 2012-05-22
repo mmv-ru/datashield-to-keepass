@@ -22,7 +22,7 @@ def main():
     print(u"тест")
     print(soup.originalencoding)
     cat = ParseCategories(soup)
-    print 9, cat['9']['name']
+    print (9, cat['9']['name'])
     templates = ParseTemplates(soup)
     print templates['32767']
     pass
@@ -47,11 +47,18 @@ def openfile(Filename):
 #    with open(Filename) as file: #not supported in python before 2.6
     try:
         file = open(Filename, 'rb')
-        soup = BeautifulStoneSoup( urllib.unquote( file.read().encode('cp1251')
-		                                         ))
+        soup = BeautifulStoneSoup( decode(file.read()) )
     finally:
         file.close
     return soup
-  
+
+def decode(str):
+    """Decode text with urlencoded inserts in cp1251
+    
+    >>> decode("%cd%e5%f4%f2%fc%20%d0%ee%f1%f1%e8%e8")
+    u'\u041d\u0435\u0444\u0442\u044c \u0420\u043e\u0441\u0441\u0438\u0438'
+    """
+    return unicode(urllib.unquote(str.encode('cp1251')), 'cp1251')
+    
 if __name__ == '__main__':
     main()
