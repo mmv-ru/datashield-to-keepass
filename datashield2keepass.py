@@ -20,11 +20,10 @@ def main():
 #    print(soup.findAll('template'))
 #    print(soup.findAll('record'))
     print(u"тест")
-    print(soup.originalencoding)
     cat = ParseCategories(soup)
-    print (9, cat['9']['name'])
+    print('9 ', cat['9']['name'])
     templates = ParseTemplates(soup)
-    print templates['32767']
+    print('32767 ', templates['32767'])
     pass
 
 def ParseCategories(soup):
@@ -38,9 +37,15 @@ def ParseCategories(soup):
 def ParseTemplates(soup):
     """Parse templates"""
     return dict(map(lambda cat: (cat['id'], {'id': cat['id'], 'name': cat['name'], 'flags': cat['flags'],
-                                        'fields': ' '.strip() }),
-             soup.findAll('template')))
+                                        'fields': ParseFields(cat) }),
+                    soup.findAll('template')))
 
+def ParseFields(fields):
+    """Parse fields"""
+    print(fields.findAll('field'))
+    return dict(map(lambda cat: (cat['id'], {'id': cat['id'], 'encrypt': cat.get('encrypt', u'0'),
+                                        'FieldName': cat.string.strip() }),
+                    fields.findAll('field')))
 			 
 def openfile(Filename):
     """Open file as BeautifulStoneSoup"""
@@ -59,6 +64,11 @@ def decode(str):
     u'\u041d\u0435\u0444\u0442\u044c \u0420\u043e\u0441\u0441\u0438\u0438'
     """
     return unicode(urllib.unquote(str.encode('cp1251')), 'cp1251')
-    
+
+def output(File):
+    """Output in Keepass CSV
+	"""
+    pass
+	
 if __name__ == '__main__':
     main()
