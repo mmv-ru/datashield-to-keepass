@@ -1,0 +1,11 @@
+# Before I can use it
+* Read Datashield XML templates - done
+* Read Datashield XML Data - done
+* Generation os Keepass CSV based on separate format string for each DS template
+* Read format strings from file
+* Generate missed format string for template 
+* Append generated format strings to file
+
+# Optional
+* "smart" generation new format strings
+* Documentation
