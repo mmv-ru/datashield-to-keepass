@@ -13,6 +13,9 @@ from BeautifulSoup import BeautifulStoneSoup
 # http://docs.python.org/library/quopri.html
 import quopri
 import urllib
+# CSV output
+import csv
+# format template
 
 def main():
     soup=openfile(u"Datashield Export_Example.xml")
@@ -21,9 +24,10 @@ def main():
 #    print(soup.findAll('record'))
     print(u"тест")
     cat = ParseCategories(soup)
-    print('9 ', cat['9']['name'])
+    #print('9 ', cat['9']['name'])
     templates = ParseTemplates(soup)
-    print('32767 ', templates['32767'])
+    #print('template["32767"] ', templates['32767'])
+    records = ParseRecords(soup)
     pass
 
 def ParseCategories(soup):
@@ -42,11 +46,15 @@ def ParseTemplates(soup):
 
 def ParseFields(fields):
     """Parse fields"""
-    print(fields.findAll('field'))
+    #print(fields.findAll('field'))
     return dict(map(lambda cat: (cat['id'], {'id': cat['id'], 'encrypt': cat.get('encrypt', u'0'),
                                         'FieldName': cat.string.strip() }),
                     fields.findAll('field')))
-			 
+
+def ParseRecords(records):
+    """Parse records"""
+    print(records.findAll('record'))
+                    
 def openfile(Filename):
     """Open file as BeautifulStoneSoup"""
 #    with open(Filename) as file: #not supported in python before 2.6
@@ -65,10 +73,43 @@ def decode(str):
     """
     return unicode(urllib.unquote(str.encode('cp1251')), 'cp1251')
 
-def output(File):
+    formats = {'template': {'Account': 'format',
+                               'Login Name': 'format',
+                               'Password': 'format',
+                               'Web Site': 'format',
+                               'Comments': 'format'},}
+
+
+def importformats(filename):
+    """ 
+    formats = {'template': {'Account': 'format',
+                               'Login Name': 'format',
+                               'Password': 'format',
+                               'Web Site': 'format',
+                               'Comments': 'format'},}
+    """
+    try:
+        file = open(filename, 'r')
+        formats = eval(file, {})
+    finally:
+        file.close
+
+def unknown_templates(records, templates, formats):
+    """generate format for unknown templates
+    """
+    new_formats = []
+    for record in records:
+        template = record['template']
+        if not ((template in formats) or (template in new_format)):
+            new_formats.add(template)
+    print new_formats
+        
+def output(File, records, templates, formats):
     """Output in Keepass CSV
-	"""
-    pass
+    """
+    for record in records:
+        format = formats[record['template']]
+        print format
 	
 if __name__ == '__main__':
     main()
