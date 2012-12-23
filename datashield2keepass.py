@@ -75,7 +75,8 @@ def dict_merge(*args):
     
 def ParseValues(values):
     """ Parse Values"""
-    #print "Values ", values
+    #print "Values ", values 
+    ## TODO: {Unescape (decode) must be done after parsing! because of possible values with encoded spaces at sides!!!}
     return dict(map(lambda x: (x['id'],x.string),
                     values.findAll('value'))
                )
@@ -100,11 +101,11 @@ def decode(str):
     charset = 'cp1251' # possible need to be changed to correct charset
     return unicode(urllib.unquote(str.encode(charset)), charset)
 
-    formats = {'template': {'Account': 'format',
-                               'Login Name': 'format',
-                               'Password': 'format',
-                               'Web Site': 'format',
-                               'Comments': 'format'},}
+formats = {'template': {'Account': 'format',
+                        'Login Name': 'format',
+                        'Password': 'format',
+                        'Web Site': 'format',
+                        'Comments': 'format'},}
 
 
 def importformats(filename):
