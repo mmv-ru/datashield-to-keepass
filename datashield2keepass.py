@@ -23,38 +23,63 @@ def main():
 #    print(soup.findAll('template'))
 #    print(soup.findAll('record'))
     print(u"тест")
-    cat = ParseCategories(soup)
-    #print('9 ', cat['9']['name'])
+    categories = ParseCategories(soup)
+    print('category[9] ', categories['9']['name'])
     templates = ParseTemplates(soup)
     #print('template["32767"] ', templates['32767'])
     records = ParseRecords(soup)
+    print "Records", repr(records)
     pass
 
 def ParseCategories(soup):
     """Parse categories"""
-    return dict(map(lambda cat: (cat['id'], {'id': cat['id'], 'rid': cat['rid'],
-                                             'name': cat.string.strip() }),
+    # Here x - formal parameter for lambda function, applied to each item of list (soup.findAll('category'))
+    return dict(map(lambda x: (x['id'], {'id': x['id'], 'rid': x['rid'],
+                                             'name': x.string.strip() }),
                     soup.findAll('category')
                    )
                )
 
 def ParseTemplates(soup):
     """Parse templates"""
-    return dict(map(lambda cat: (cat['id'], {'id': cat['id'], 'name': cat['name'], 'flags': cat['flags'],
-                                        'fields': ParseFields(cat) }),
+    return dict(map(lambda x: (x['id'], {'id': x['id'], 'name': x['name'], 'flags': x['flags'],
+                                        'fields': ParseFields(x) }),
                     soup.findAll('template')))
 
 def ParseFields(fields):
     """Parse fields"""
     #print(fields.findAll('field'))
-    return dict(map(lambda cat: (cat['id'], {'id': cat['id'], 'encrypt': cat.get('encrypt', u'0'),
-                                        'FieldName': cat.string.strip() }),
-                    fields.findAll('field')))
+    return dict(map(lambda x: (x['id'], {'id': x['id'], 'encrypt': x.get('encrypt', u'0'),
+                                        'FieldName': x.string.strip() }),
+                    fields.findAll('field'))
+               )
 
 def ParseRecords(records):
-    """Parse records"""
-    print(records.findAll('record'))
-                    
+    """Parse records
+    
+    >>> ParseRecords(records)
+    
+    """
+    print repr(records)
+    return map(lambda x: dict_merge({'id': x['id'], 'template': x['template'],
+                                     'category': x['category'], 'created': x['created'] },
+                                    ParseValues(x.findAll('values', limit=1)[0])
+                                   ),
+                         #} | ParseValues(x.findAll('values', limit=1)[0]),
+                         records.findAll('record'))
+
+def dict_merge(*args):                         
+    result = {}
+    for d in args: result.update(d)
+    return result
+    
+def ParseValues(values):
+    """ Parse Values"""
+    #print "Values ", values
+    return dict(map(lambda x: (x['id'],x.string),
+                    values.findAll('value'))
+               )
+                         
 def openfile(Filename):
     """Open file as BeautifulStoneSoup"""
 #    with open(Filename) as file: #not supported in python before 2.6
@@ -67,11 +92,13 @@ def openfile(Filename):
 
 def decode(str):
     """Decode text with urlencoded inserts in cp1251
+    possible need to be changed to correct charset
     
     >>> decode("%cd%e5%f4%f2%fc%20%d0%ee%f1%f1%e8%e8")
     u'\u041d\u0435\u0444\u0442\u044c \u0420\u043e\u0441\u0441\u0438\u0438'
     """
-    return unicode(urllib.unquote(str.encode('cp1251')), 'cp1251')
+    charset = 'cp1251' # possible need to be changed to correct charset
+    return unicode(urllib.unquote(str.encode(charset)), charset)
 
     formats = {'template': {'Account': 'format',
                                'Login Name': 'format',
