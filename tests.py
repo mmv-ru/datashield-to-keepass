@@ -2,6 +2,10 @@
 # -*- coding~: utf8 -*-
 # Tested on Python Release 2.5 Win32
 
+# It used by nose test
+# To run tests, run nosetests in project root
+# To run tests with coverage run "nosetests --with-coverage"
+
 import datashield2keepass
 
 def test():
