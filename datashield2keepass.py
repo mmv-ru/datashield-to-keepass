@@ -17,6 +17,10 @@ import urllib
 import csv
 # format template
 
+# http://docs.python.org/2/library/codecs.html#standard-encodings
+charset = 'cp1251' # possible need to be changed to correct charset
+
+
 def main():
     soup=openfile(u"Datashield Export_Example.xml")
 #    print(soup.findAll('category'))
@@ -34,35 +38,33 @@ def main():
 def ParseCategories(soup):
     """Parse categories"""
     # Here x - formal parameter for lambda function, applied to each item of list (soup.findAll('category'))
-    return dict(map(lambda x: (x['id'], {'id': x['id'], 'rid': x['rid'],
-                                             'name': x.string.strip() }),
+    return dict(map(lambda x: (unescape(x['id']), {'id': unescape(x['id']), 'rid': unescape(x['rid']),
+                                             'name': unescape(x.string) }),
                     soup.findAll('category')
                    )
                )
 
 def ParseTemplates(soup):
     """Parse templates"""
-    return dict(map(lambda x: (x['id'], {'id': x['id'], 'name': x['name'], 'flags': x['flags'],
-                                        'fields': ParseFields(x) }),
+    return dict(map(lambda x: (unescape(x['id']), {'id': unescape(x['id']), 'name': unescape(x['name']),
+                                                  'flags': unescape(x['flags']), 'fields': ParseFields(x) }),
                     soup.findAll('template')))
 
 def ParseFields(fields):
     """Parse fields"""
     #print(fields.findAll('field'))
-    return dict(map(lambda x: (x['id'], {'id': x['id'], 'encrypt': x.get('encrypt', u'0'),
-                                        'FieldName': x.string.strip() }),
+    return dict(map(lambda x: (unescape(x['id']), {'id': unescape(x['id']), 'encrypt': unescape(x.get('encrypt', u'0')),
+                                        'FieldName': unescape(x.string) }),
                     fields.findAll('field'))
                )
 
 def ParseRecords(records):
     """Parse records
     
-    >>> ParseRecords(records)
-    
     """
-    print repr(records)
-    return map(lambda x: dict_merge({'id': x['id'], 'template': x['template'],
-                                     'category': x['category'], 'created': x['created'] },
+    #print repr(records)
+    return map(lambda x: dict_merge({'id': unescape(x['id']), 'template': unescape(x['template']),
+                                     'category': unescape(x['category']), 'created': unescape(x['created']) },
                                     ParseValues(x.findAll('values', limit=1)[0])
                                    ),
                          #} | ParseValues(x.findAll('values', limit=1)[0]),
@@ -76,8 +78,7 @@ def dict_merge(*args):
 def ParseValues(values):
     """ Parse Values"""
     #print "Values ", values 
-    ## TODO: {Unescape (decode) must be done after parsing! because of possible values with encoded spaces at sides!!!}
-    return dict(map(lambda x: (x['id'],x.string),
+    return dict(map(lambda x: (unescape(x['id']),unescape(x.string)),
                     values.findAll('value'))
                )
                          
@@ -86,20 +87,19 @@ def openfile(Filename):
 #    with open(Filename) as file: #not supported in python before 2.6
     try:
         file = open(Filename, 'rb')
-        soup = BeautifulStoneSoup( decode(file.read()) )
+        soup = BeautifulStoneSoup(file)
     finally:
         file.close
     return soup
 
-def decode(str):
+def unescape(str):
     """Decode text with urlencoded inserts in cp1251
     possible need to be changed to correct charset
     
     >>> decode("%cd%e5%f4%f2%fc%20%d0%ee%f1%f1%e8%e8")
     u'\u041d\u0435\u0444\u0442\u044c \u0420\u043e\u0441\u0441\u0438\u0438'
     """
-    charset = 'cp1251' # possible need to be changed to correct charset
-    return unicode(urllib.unquote(str.encode(charset)), charset)
+    return unicode(urllib.unquote(str.strip().encode(charset)), charset)
 
 formats = {'template': {'Account': 'format',
                         'Login Name': 'format',
