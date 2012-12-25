@@ -16,9 +16,12 @@ import urllib
 # CSV output
 import csv
 # format template
+import pprint
 
+# Charset for decoding strings in XML.
+# Change to correct charset !!!
 # http://docs.python.org/2/library/codecs.html#standard-encodings
-charset = 'cp1251' # possible need to be changed to correct charset
+charset = 'cp1251' 
 
 
 def main():
@@ -28,11 +31,12 @@ def main():
 #    print(soup.findAll('record'))
     print(u"тест")
     categories = ParseCategories(soup)
-    print('category[9] ', categories['9']['name'])
+    print('category[9] ', pprint.pformat(categories['9']['name']))
     templates = ParseTemplates(soup)
     #print('template["32767"] ', templates['32767'])
     records = ParseRecords(soup)
-    print "Records", repr(records)
+    #print "Records", repr(records)
+    unknown_templates(records, templates, formats)
     pass
 
 def ParseCategories(soup):
@@ -53,7 +57,7 @@ def ParseTemplates(soup):
 def ParseFields(fields):
     """Parse fields"""
     #print(fields.findAll('field'))
-    return dict(map(lambda x: (unescape(x['id']), {'id': unescape(x['id']), 'encrypt': unescape(x.get('encrypt', u'0')),
+    return dict(map(lambda x: (unescape(x['id']), {'encrypt': unescape(x.get('encrypt', u'0')),
                                         'FieldName': unescape(x.string) }),
                     fields.findAll('field'))
                )
@@ -105,16 +109,19 @@ formats = {'template': {'Account': 'format',
                         'Login Name': 'format',
                         'Password': 'format',
                         'Web Site': 'format',
-                        'Comments': 'format'},}
+                        'Comments': 'format'} }
 
 
 def importformats(filename):
     """ 
-    formats = {'template': {'Account': 'format',
-                               'Login Name': 'format',
-                               'Password': 'format',
-                               'Web Site': 'format',
-                               'Comments': 'format'},}
+    formats = {'template': {'t_name': 'template name (for reference)',
+                            'f_names': {'field_id': 'field name (for reference)'}
+                            '1_Account': 'format',
+                            '2_Login Name': 'format',
+                            '3_Password': 'format',
+                            '4_Web Site': 'format',
+                            '5_Comments': '%(257)s '
+                           }}
     """
     try:
         file = open(filename, 'r')
@@ -125,13 +132,31 @@ def importformats(filename):
 def unknown_templates(records, templates, formats):
     """generate format for unknown templates
     """
-    new_formats = []
+    new_templates = []
     for record in records:
         template = record['template']
-        if not ((template in formats) or (template in new_format)):
-            new_formats.add(template)
-    print new_formats
-        
+        if not ((template in formats) or (template in new_templates)):
+            new_templates.append(template)
+    new_formats = {}
+    for template_id in new_templates:
+        new_formats[template_id] = {'t_name': templates[template_id]['name'],
+                                    'f_names': templates[template_id]['fields'],
+                                    '1_Account': '',
+                                    '2_Login Name': '',
+                                    '3_Password': '',
+                                    '4_Web Site': '',
+                                    '5_Comments': AllFieldsInFormat(templates[template_id]['fields'], templates)
+                                    }
+    print pprint.pprint(new_formats)
+
+def AllFieldsInFormat(fields, templates):
+    """ Build format line with all fields
+    """
+    format = ''
+    for k in sorted(fields.keys()):
+        format += '%s: %%(%s)\n' % (fields[k]['FieldName'], k)
+    return format
+
 def output(File, records, templates, formats):
     """Output in Keepass CSV
     """
