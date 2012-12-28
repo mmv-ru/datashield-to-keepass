@@ -2,10 +2,10 @@
 * Read Datashield XML templates - done
 * Read Datashield XML Data - done
 * Generate missed format string for template - done
-* Save generated format strings to file
+* Save generated format strings to file - done
+* Add support of Note - done
 * Read format strings from file
 * Generation os Keepass CSV based on separate format string for each DS template
-* Add support of Note
 
 # Public beta
 * Verification of matching defined format with XML templates

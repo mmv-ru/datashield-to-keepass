@@ -36,10 +36,10 @@ def main():
     templates = ParseTemplates(soup)
     #print('template["32767"] ', templates['32767'])
     records = ParseRecords(soup)
-    #print "Records", repr(records)
+    print "Records: ", pprint.pformat(records)
     formats = importformats("formats.txt")
     new_formats = unknown_templates(records, templates, formats)
-    print pprint.pprint(new_formats)
+    #print pprint.pprint(new_formats)
     outputNewFormats(new_formats)
     
 
@@ -66,13 +66,22 @@ def ParseFields(fields):
                     fields.findAll('field'))
                )
 
+def ParseNote(note_soup):
+    """Parse record note"""
+    pprint.pprint(note_soup)
+    note = ''
+    if len(note_soup):
+        note = unescape(note_soup[0].string)
+    return {'note': note}
+
 def ParseRecords(records):
     """Parse records
     
     """
     #print repr(records)
     return map(lambda x: dict_merge({'id': unescape(x['id']), 'template': unescape(x['template']),
-                                     'category': unescape(x['category']), 'created': unescape(x['created']) },
+                                     'category': unescape(x['category']), 'created': unescape(x['created'])},
+                                    ParseNote(x.findAll('note', limit=1)),
                                     ParseValues(x.findAll('values', limit=1)[0])
                                    ),
                          #} | ParseValues(x.findAll('values', limit=1)[0]),
@@ -147,7 +156,7 @@ def unknown_templates(records, templates, formats):
                                     '2_Login Name': '',
                                     '3_Password': '',
                                     '4_Web Site': '',
-                                    '5_Comments': AllFieldsInFormat(templates[template_id]['fields'], templates)
+                                    '5_Comments': AllFieldsInFormat(templates[template_id]['fields'], templates) + '%(note)s'
                                     }
     return new_formats
 
