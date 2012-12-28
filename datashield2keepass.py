@@ -17,6 +17,7 @@ import urllib
 import csv
 # format template
 import pprint
+import os.path
 
 # Charset for decoding strings in XML.
 # Change to correct charset !!!
@@ -36,8 +37,11 @@ def main():
     #print('template["32767"] ', templates['32767'])
     records = ParseRecords(soup)
     #print "Records", repr(records)
-    unknown_templates(records, templates, formats)
-    pass
+    formats = importformats("formats.txt")
+    new_formats = unknown_templates(records, templates, formats)
+    print pprint.pprint(new_formats)
+    outputNewFormats(new_formats)
+    
 
 def ParseCategories(soup):
     """Parse categories"""
@@ -105,13 +109,6 @@ def unescape(str):
     """
     return unicode(urllib.unquote(str.strip().encode(charset)), charset)
 
-formats = {'template': {'Account': 'format',
-                        'Login Name': 'format',
-                        'Password': 'format',
-                        'Web Site': 'format',
-                        'Comments': 'format'} }
-
-
 def importformats(filename):
     """ 
     formats = {'template': {'t_name': 'template name (for reference)',
@@ -120,14 +117,19 @@ def importformats(filename):
                             '2_Login Name': 'format',
                             '3_Password': 'format',
                             '4_Web Site': 'format',
-                            '5_Comments': '%(257)s '
+                            '5_Comments': 'Description: %(257)s\nCode: %(258)s\n '
                            }}
     """
-    try:
+    if os.path.isfile(filename): 
         file = open(filename, 'r')
-        formats = eval(file, {})
-    finally:
-        file.close
+        try:
+            formats = eval(file.read(), {})
+        finally:
+            file.close
+    else:
+        print("Formats file ""%s"" missing. Empty." % (filename))
+        formats = {}
+    return formats
 
 def unknown_templates(records, templates, formats):
     """generate format for unknown templates
@@ -147,17 +149,31 @@ def unknown_templates(records, templates, formats):
                                     '4_Web Site': '',
                                     '5_Comments': AllFieldsInFormat(templates[template_id]['fields'], templates)
                                     }
-    print pprint.pprint(new_formats)
+    return new_formats
 
+def outputNewFormats(new_formats):
+    """Save new formats to file
+    """
+    New_Formatss_FileName = "new_formats.txt"
+    if len(new_formats):
+        file = open(New_Formatss_FileName, "w")
+        try:
+            file.write(pprint.pformat(new_formats))
+        finally:
+            file.close()
+    else:
+        # May be is good remove new_formats.txt here?
+        pass
+    
 def AllFieldsInFormat(fields, templates):
     """ Build format line with all fields
     """
     format = ''
     for k in sorted(fields.keys()):
-        format += '%s: %%(%s)\n' % (fields[k]['FieldName'], k)
+        format += '%s: %%(%s)s\n' % (fields[k]['FieldName'], k)
     return format
 
-def output(File, records, templates, formats):
+def outputCSV(File, records, templates, formats):
     """Output in Keepass CSV
     """
     for record in records:
