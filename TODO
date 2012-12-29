@@ -5,7 +5,7 @@
 * Save generated format strings to file - done
 * Add support of Note - done
 * Read format strings from file - done
-* Generation os Keepass CSV based on separate format string for each DS template - done
+* Generation of Keepass CSV based on separate format string for each DS template - done
 * Bug with no default value for fields
 
 # Public beta (optional)
