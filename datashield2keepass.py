@@ -15,6 +15,8 @@ import quopri
 import urllib
 # CSV output
 import csv
+import cStringIO
+import codecs
 # format template
 import pprint
 import os.path
@@ -36,11 +38,12 @@ def main():
     templates = ParseTemplates(soup)
     #print('template["32767"] ', templates['32767'])
     records = ParseRecords(soup)
-    print "Records: ", pprint.pformat(records)
+    #print "Records: ", pprint.pformat(records)
     formats = importformats("formats.txt")
     new_formats = unknown_templates(records, templates, formats)
     #print pprint.pprint(new_formats)
     outputNewFormats(new_formats)
+    outputCSV("keepass.csv", records, templates, formats)
     
 
 def ParseCategories(soup):
@@ -68,7 +71,6 @@ def ParseFields(fields):
 
 def ParseNote(note_soup):
     """Parse record note"""
-    pprint.pprint(note_soup)
     note = ''
     if len(note_soup):
         note = unescape(note_soup[0].string)
@@ -182,12 +184,58 @@ def AllFieldsInFormat(fields, templates):
         format += '%s: %%(%s)s\n' % (fields[k]['FieldName'], k)
     return format
 
+class UnicodeWriter:
+    """
+    A CSV writer which will write rows to CSV file "f",
+    which is encoded in the given encoding.
+    """
+
+    def __init__(self, f, dialect=csv.excel, encoding="utf-8", **kwds):
+        # Redirect output to a queue
+        self.queue = cStringIO.StringIO()
+        self.writer = csv.writer(self.queue, dialect=dialect, **kwds)
+        self.stream = f
+        self.encoder = codecs.getincrementalencoder(encoding)()
+
+    def writerow(self, row):
+        self.writer.writerow([s.encode("utf-8") for s in row])
+        # Fetch UTF-8 output from the queue ...
+        data = self.queue.getvalue()
+        data = data.decode("utf-8")
+        # ... and reencode it into the target encoding
+        data = self.encoder.encode(data)
+        # write to the target stream
+        self.stream.write(data)
+        # empty queue
+        self.queue.truncate(0)
+
+    def writerows(self, rows):
+        for row in rows:
+            self.writerow(row)    
+
 def outputCSV(File, records, templates, formats):
     """Output in Keepass CSV
     """
-    for record in records:
-        format = formats[record['template']]
-        print format
-	
+    f = open(File, "w")
+    try:
+        writer = UnicodeWriter(f)
+        for record in records:
+            format = formats[record['template']]
+            try:
+                writer.writerow((format['1_Account'] % record ,
+                                 format['2_Login Name'] % record ,
+                                 format['3_Password'] % record ,
+                                 format['4_Web Site'] % record ,
+                                 format['5_Comments'] % record))
+            except:
+#            except KeyError:
+                print("\nError in converting record:")
+                print(pprint.pformat(record))
+                print("\nFormat:")
+                print(pprint.pformat(format))
+                raise
+    finally:
+        f.close()
+
 if __name__ == '__main__':
     main()
