@@ -1,5 +1,5 @@
 ﻿#!pyton
-# -*- coding~: utf8 -*-
+# -*- coding: utf-8 -*-
 # Tested on Python Release 2.5 Win32
 
 version = "0.0.1"
@@ -9,7 +9,6 @@ version = "0.0.1"
 from BeautifulSoup import BeautifulStoneSoup
 #import string
 #import sys
-#import os
 # http://docs.python.org/library/quopri.html
 import quopri
 import urllib
@@ -17,33 +16,46 @@ import urllib
 import csv
 import cStringIO
 import codecs
+import os
 # format template
 import pprint
 import os.path
 
-# Charset for decoding strings in XML.
+# Key parameters
+InputXMLFile = u"Datashield Export_Example.xml"
+# Charset for decoding strings in DataShield XML.
 # Change to correct charset !!!
 # http://docs.python.org/2/library/codecs.html#standard-encodings
 charset = 'cp1251' 
 
+# Optional parameters
+OutputCSVFile = u"keepass.csv"
+FormatsFile = u"formats.txt"
+NewFormatsFile = u"new_formats.txt"
 
 def main():
-    soup=openfile(u"Datashield Export_Example.xml")
+    soup=openfile(InputXMLFile)
 #    print(soup.findAll('category'))
 #    print(soup.findAll('template'))
 #    print(soup.findAll('record'))
-    print(u"тест")
-    categories = ParseCategories(soup)
-    print('category[9] ', pprint.pformat(categories['9']['name']))
+    assert(repr(u'тест') == "u'\u0442\u0435\u0441\u0442'") # test UTF-8 literal encoding
+    #categories = ParseCategories(soup)
+    #print('category[9] ', pprint.pformat(categories['9']['name']))
+    print("Parse Templates")
     templates = ParseTemplates(soup)
     #print('template["32767"] ', templates['32767'])
+    print("Parse Records")
     records = ParseRecords(soup)
     #print "Records: ", pprint.pformat(records)
-    formats = importformats("formats.txt")
+    print("Load formats from file: %s" % FormatsFile)
+    formats = importformats(FormatsFile)
+    print("Write new formats to file: %s" % NewFormatsFile)
     new_formats = unknown_templates(records, templates, formats)
     #print pprint.pprint(new_formats)
-    outputNewFormats(new_formats)
-    outputCSV("keepass.csv", records, templates, formats)
+    outputNewFormats(new_formats, NewFormatsFile)
+    print("Output records to KeepasCSV-file: %s" % OutputCSVFile)
+    outputCSV(OutputCSVFile, records, templates, formats)
+    print("All Done.")
     
 
 def ParseCategories(soup):
@@ -162,12 +174,11 @@ def unknown_templates(records, templates, formats):
                                     }
     return new_formats
 
-def outputNewFormats(new_formats):
+def outputNewFormats(new_formats, New_Formats_File):
     """Save new formats to file
     """
-    New_Formatss_FileName = "new_formats.txt"
     if len(new_formats):
-        file = open(New_Formatss_FileName, "w")
+        file = open(New_Formats_File, "w")
         try:
             file.write(pprint.pformat(new_formats))
         finally:
@@ -189,7 +200,7 @@ class UnicodeWriter:
     A CSV writer which will write rows to CSV file "f",
     which is encoded in the given encoding.
     """
-
+    
     def __init__(self, f, dialect=csv.excel, encoding="utf-8", **kwds):
         # Redirect output to a queue
         self.queue = cStringIO.StringIO()
@@ -213,6 +224,18 @@ class UnicodeWriter:
         for row in rows:
             self.writerow(row)    
 
+class KeepassDialect(csv.Dialect):
+    """
+    http://keepass.info/help/base/importexport.html#csv
+    """
+    quotechar = '"'
+    delimiter = ','
+    lineterminator = os.linesep
+    doublequote = False
+    skipinitialspace = True
+    quoting = csv.QUOTE_ALL
+    escapechar = '\\'
+
 def add_default(record, templates):
     """ Add to record all fields presented in template
     """
@@ -225,7 +248,7 @@ def outputCSV(File, records, templates, formats):
     f = open(File, "wb")
     # f = open(File, "w", newline="") # for python 3
     try:
-        writer = UnicodeWriter(f)
+        writer = UnicodeWriter(f, dialect=KeepassDialect())
         for record in records:
             format = formats[record['template']]
             add_default(record, templates)

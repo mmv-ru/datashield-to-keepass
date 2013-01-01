@@ -9,8 +9,8 @@
 * Fix bug with no default value for fields  - done
   - Make default based on template
     - at moment of formatting
-* Fix bug - Wrong CSV "dialect"
-* Test import to Keepass
+* Fix bug - Wrong CSV "dialect" - done
+* Test import to Keepass - done
     
 # Public beta (optional)
 * Documentation 
