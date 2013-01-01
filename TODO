@@ -6,10 +6,12 @@
 * Add support of Note - done
 * Read format strings from file - done
 * Generation of Keepass CSV based on separate format string for each DS template - done
-* Bug with no default value for fields  - done
+* Fix bug with no default value for fields  - done
   - Make default based on template
     - at moment of formatting
-
+* Fix bug - Wrong CSV "dialect"
+* Test import to Keepass
+    
 # Public beta (optional)
 * Documentation 
 * Verification of matching defined format with XML templates
