@@ -76,7 +76,7 @@ def ParseNote(note_soup):
         note = unescape(note_soup[0].string)
     return {'note': note}
 
-def ParseRecords(records):
+def ParseRecords(records_soup):
     """Parse records
     
     """
@@ -87,7 +87,7 @@ def ParseRecords(records):
                                     ParseValues(x.findAll('values', limit=1)[0])
                                    ),
                          #} | ParseValues(x.findAll('values', limit=1)[0]),
-                         records.findAll('record'))
+                         records_soup.findAll('record'))
 
 def dict_merge(*args):                         
     result = {}
@@ -213,14 +213,22 @@ class UnicodeWriter:
         for row in rows:
             self.writerow(row)    
 
+def add_default(record, templates):
+    """ Add to record all fields presented in template
+    """
+    for key in templates[record['template']]['fields'].keys():
+        record.setdefault(key, '')
+   
 def outputCSV(File, records, templates, formats):
     """Output in Keepass CSV
     """
-    f = open(File, "w")
+    f = open(File, "wb")
+    # f = open(File, "w", newline="") # for python 3
     try:
         writer = UnicodeWriter(f)
         for record in records:
             format = formats[record['template']]
+            add_default(record, templates)
             try:
                 writer.writerow((format['1_Account'] % record ,
                                  format['2_Login Name'] % record ,
