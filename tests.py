@@ -8,15 +8,23 @@
 
 import datashield2keepass
 
+from nose.tools import assert_equal
+from nose.tools import assert_not_equal
+from nose.tools import assert_raises
+
+
+#datashield2keepass.charset = 'cp1251'
+
 def test():
   soup=datashield2keepass.openfile(u"Datashield Export_Example.xml")
-  assert (datashield2keepass.ParseCategories(soup)['9']['name'] ==
-          u'\u041d\u0435\u0444\u0442\u044c \u0420\u043e\u0441\u0441\u0438\u0438' )
-  assert (datashield2keepass.ParseTemplates(soup)['32767']['name'] == u'4t Nox' )
-  assert (datashield2keepass.ParseRecords(soup)[0] == 
-          {'category': u'7', u'260': u'6twz6lr',
-           'template': u'32767', 'created': u'28.05.2004 18:00:38',
-           u'259': u'ivang', 'id': u'70'}  )
+  assert_equal(datashield2keepass.ParseCategories(soup)['9']['name'], 
+               u'\u041d\u0435\u0444\u0442\u044c \u0420\u043e\u0441\u0441\u0438\u0438' )
+  assert_equal(datashield2keepass.ParseTemplates(soup)['32767']['name'],
+               u'4t Nox' )
+  assert_equal(datashield2keepass.ParseRecords(soup)[0],
+              {'category': u'7', 'note': '', u'260': u'6twz6lr',
+               'template': u'32767', 'created': u'28.05.2004 18:00:38',
+               u'259': u'ivang', 'id': u'70'}  )
   
 def test_unescape():
     assert (datashield2keepass.unescape("\r\n     %cd%e5%f4%f2%fc%20%d0%ee%f1%f1%e8%e8\r\n      ") ==
