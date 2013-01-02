@@ -11,6 +11,8 @@
     - at moment of formatting
 * Fix bug - Wrong CSV "dialect" - done
 * Test import to Keepass - done
+* Extended exception handling for simplify debug on large data
+* Test on real life data
     
 # Public beta (optional)
 * Documentation 

@@ -8,10 +8,12 @@ version = "0.0.1"
 # http://www.crummy.com/software/BeautifulSoup/bs3/documentation.html
 from BeautifulSoup import BeautifulStoneSoup
 #import string
-#import sys
+import sys
 # http://docs.python.org/library/quopri.html
 import quopri
 import urllib
+# parse record
+import traceback
 # CSV output
 import csv
 import cStringIO
@@ -22,7 +24,7 @@ import pprint
 import os.path
 
 # Key parameters
-InputXMLFile = u"Datashield Export_Example.xml"
+InputXMLFile = u"Datashield Export.xml"
 # Charset for decoding strings in DataShield XML.
 # Change to correct charset !!!
 # http://docs.python.org/2/library/codecs.html#standard-encodings
@@ -44,15 +46,25 @@ def main():
     print("Parse Templates")
     templates = ParseTemplates(soup)
     #print('template["32767"] ', templates['32767'])
+    print("Templates parsed: %s" % len(templates))
     print("Parse Records")
     records = ParseRecords(soup)
     #print "Records: ", pprint.pformat(records)
+    print("Records parsed: %s" % len(records))
     print("Load formats from file: %s" % FormatsFile)
     formats = importformats(FormatsFile)
+    print("Formats loaded: %s" % len(formats))
     print("Write new formats to file: %s" % NewFormatsFile)
     new_formats = unknown_templates(records, templates, formats)
     #print pprint.pprint(new_formats)
     outputNewFormats(new_formats, NewFormatsFile)
+    print("Missing formats: %s" % len(new_formats))
+    if len(new_formats):
+        print("""
+    Missing formats saved to %s.
+    Add this formats to %s
+""" % (NewFormatsFile, FormatsFile))
+        return
     print("Output records to KeepasCSV-file: %s" % OutputCSVFile)
     outputCSV(OutputCSVFile, records, templates, formats)
     print("All Done.")
@@ -93,14 +105,29 @@ def ParseRecords(records_soup):
     
     """
     #print repr(records)
-    return map(lambda x: dict_merge({'id': unescape(x['id']), 'template': unescape(x['template']),
-                                     'category': unescape(x['category']), 'created': unescape(x['created'])},
-                                    ParseNote(x.findAll('note', limit=1)),
-                                    ParseValues(x.findAll('values', limit=1)[0])
-                                   ),
-                         #} | ParseValues(x.findAll('values', limit=1)[0]),
-                         records_soup.findAll('record'))
-
+    records = []
+    prevrecno=0
+    prevrecid=''
+    for record in records_soup.findAll('record'):
+        try:
+            records.append(dict_merge({'id': unescape(record['id']), 'template': unescape(record['template']),
+                                             'category': unescape(record.get('category', '')), 'created': unescape(record['created'])},
+                                            ParseNote(record.findAll('note', limit=1)),
+                                            ParseValues(record.findAll('values', limit=1)[0])
+                                           )
+                       )
+            prevrecid=unescape(record['id'])
+        except KeyError, e:
+            print("Error in parsing XML record:")
+            pprint.pprint(record)
+            print("\nlast successfull record - %s id=%s" % (prevrecno, prevrecid))
+            raise
+            # exc_type, exc_value, exc_traceback = sys.exc_info()
+            # traceback.print_exception(exc_type, exc_value, exc_traceback,
+                              # limit=1, file=sys.stdout)
+        prevrecno+=1
+    return records
+    
 def dict_merge(*args):                         
     result = {}
     for d in args: result.update(d)
