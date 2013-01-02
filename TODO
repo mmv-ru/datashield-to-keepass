@@ -16,6 +16,7 @@
 * Test on real life data
     
 # Public beta (optional)
+* Convert to, more flexible, KeepassXML. It support categories http://keepass.info/help/base/importexport.html#xml
 * Documentation 
 * Verification of matching defined format with XML templates
 
