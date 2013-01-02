@@ -12,6 +12,7 @@
 * Fix bug - Wrong CSV "dialect" - done
 * Test import to Keepass - done
 * Extended exception handling for simplify debug on large data
+* How to handle csv generation when errors present?
 * Test on real life data
     
 # Public beta (optional)
