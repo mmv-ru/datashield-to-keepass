@@ -29,14 +29,17 @@ Look TODO for roadmap and development status
 ### Quick HOWTO
 
 Now no command line parameters. All set in script.
+
     InputXMLFile = u"Datashield Export_Example.xml"
     charset = 'cp1251' 
     OutputCSVFile = u"keepass.csv"
 
 Run in working directory
-python datashield2keepass.py
+
+    python datashield2keepass.py
     
-First Pass: generate new_formats.txt with definition of formats missing in formats.txt
+* First Pass: generate new_formats.txt with definition of formats missing in formats.txt
+
     new_formats.txt renamed to formats and edited as wished. By default all Datashield fields writen to Keepass Comment.
 
-Second Pass: Make conversion from DatashieldXML to KeepassCSV using formats defined in formats.txt
+* Second Pass: Make conversion from DatashieldXML to KeepassCSV using formats defined in formats.txt
