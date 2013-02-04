@@ -13,10 +13,11 @@
 * Test import to Keepass - done
 * Extended exception handling for simplify debug on large data
 * How to handle csv generation when errors present?
+  - For example DataShield export some empty meaningless records.
 * Test on real life data
     
 # Public beta (optional)
-* Convert to, more flexible, KeepassXML. It support categories http://keepass.info/help/base/importexport.html#xml
+* Convert to, more flexible, KeepassXML. At least it support categories http://keepass.info/help/base/importexport.html#xml
 * Documentation 
 * Verification of matching defined format with XML templates
 
