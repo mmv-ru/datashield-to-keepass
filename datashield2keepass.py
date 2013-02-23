@@ -48,9 +48,9 @@ def main():
     #print('template["32767"] ', templates['32767'])
     print("Templates parsed: %s" % len(templates))
     print("Parse Records")
-    records = ParseRecords(soup)
+    records, stats = ParseRecords(soup)
     #print "Records: ", pprint.pformat(records)
-    print("Records parsed: %s" % len(records))
+    print("Records:\n  parsed %(loaded)s\n  empty records %(emptyrecords)s" % stats)
     print("Load formats from file: %s" % FormatsFile)
     formats = importformats(FormatsFile)
     print("Formats loaded: %s" % len(formats))
@@ -98,26 +98,35 @@ def ParseNote(note_soup):
     note = ''
     if len(note_soup):
         note = unescape(note_soup[0].string)
-    return {'note': note}
+    result = {'note': note}
+    return result
 
 def ParseRecords(records_soup):
     """Parse records
-    
+       return: (records, statistic)
     """
     #print repr(records)
     records = []
     prevrecno=0
     prevrecid=''
+    emptyrecords = 0
     for record in records_soup.findAll('record'):
         try:
-            records.append(dict_merge({'id': unescape(record['id']), 'template': unescape(record['template']),
-                                             'category': unescape(record.get('category', '')), 'created': unescape(record['created'])},
-                                            ParseNote(record.findAll('note', limit=1)),
-                                            ParseValues(record.findAll('values', limit=1)[0])
-                                           )
-                       )
-            prevrecid=unescape(record['id'])
-        except KeyError, e:
+            recordNote = ParseNote(record.findAll('note', limit=1))
+            recordValues = ParseValues(record.findAll('values', limit=1))
+            if len(''.join(recordNote.values()) + ''.join(recordValues.values()))  :
+                records.append(dict_merge({'id': unescape(record['id']), 'template': unescape(record['template']),
+                                           'category': unescape(record.get('category', '')), 'created': unescape(record['created'])},
+                                           recordNote,
+                                           recordValues
+                                         )
+                           )
+                prevrecid=unescape(record['id'])
+            else:
+                print("Empty record %d skipped." % (prevrecno+1))
+                pprint.pprint(record)
+                emptyrecords += 1
+        except Exception, e:
             print("Error in parsing XML record:")
             pprint.pprint(record)
             print("\nlast successfull record - %s id=%s" % (prevrecno, prevrecid))
@@ -126,8 +135,8 @@ def ParseRecords(records_soup):
             # traceback.print_exception(exc_type, exc_value, exc_traceback,
                               # limit=1, file=sys.stdout)
         prevrecno+=1
-    return records
-    
+    return records, {'loaded': len(records), 'emptyrecords': emptyrecords}
+
 def dict_merge(*args):                         
     result = {}
     for d in args: result.update(d)
@@ -136,9 +145,12 @@ def dict_merge(*args):
 def ParseValues(values):
     """ Parse Values"""
     #print "Values ", values 
-    return dict(map(lambda x: (unescape(x['id']),unescape(x.string)),
-                    values.findAll('value'))
-               )
+    if len(values):
+        return dict(map(lambda x: (unescape(x['id']),unescape(x.string)),
+                        values[0].findAll('value'))
+                   )
+    else:
+        return {}
                          
 def openfile(Filename):
     """Open file as BeautifulStoneSoup"""
