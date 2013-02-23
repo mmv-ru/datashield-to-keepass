@@ -102,6 +102,16 @@ def ParseNote(note_soup):
     result = {'note': note}
     return result
 
+def ParseValues(values):
+    """ Parse Values"""
+    #print "Values ", values 
+    if len(values):
+        return dict(map(lambda x: (unescape(x['id']),unescape(x.string)),
+                        values[0].findAll('value'))
+                   )
+    else:
+        return {}
+
 def ParseRecords(records_soup):
     """Parse records
        return: (records, statistic)
@@ -143,16 +153,6 @@ def dict_merge(*args):
     for d in args: result.update(d)
     return result
     
-def ParseValues(values):
-    """ Parse Values"""
-    #print "Values ", values 
-    if len(values):
-        return dict(map(lambda x: (unescape(x['id']),unescape(x.string)),
-                        values[0].findAll('value'))
-                   )
-    else:
-        return {}
-                         
 def openfile(Filename):
     """Open file as BeautifulStoneSoup"""
 #    with open(Filename) as file: #not supported in python before 2.6
@@ -171,6 +171,8 @@ def unescape(str):
     u'\u041d\u0435\u0444\u0442\u044c \u0420\u043e\u0441\u0441\u0438\u0438'
     """
     return unicode(urllib.unquote(str.strip().encode(charset)), charset)
+
+# Conversion formats
 
 def importformats(filename):
     """ 
@@ -235,6 +237,15 @@ def AllFieldsInFormat(fields, templates):
         format += '%s: %%(%s)s\n' % (fields[k]['FieldName'], k)
     return format
 
+def add_default(record, templates):
+    """ Add to record all fields presented in template
+    """
+    for key in templates[record['template']]['fields'].keys():
+        record.setdefault(key, '')
+
+
+# CSV  output
+
 class UnicodeWriter:
     """
     A CSV writer which will write rows to CSV file "f",
@@ -276,12 +287,6 @@ class KeepassDialect(csv.Dialect):
     quoting = csv.QUOTE_ALL
     escapechar = '\\'
 
-def add_default(record, templates):
-    """ Add to record all fields presented in template
-    """
-    for key in templates[record['template']]['fields'].keys():
-        record.setdefault(key, '')
-   
 def outputCSV(File, records, templates, formats):
     """Output in Keepass CSV
     """
@@ -295,11 +300,6 @@ def outputCSV(File, records, templates, formats):
             try:
                 writer.writerow(map(lambda x: Keepass1CSVEscape(format[x] % record),
                                     ['1_Account', '2_Login Name', '3_Password', '4_Web Site', '5_Comments']))
-#                    (Keepass1CSVEscape(format['1_Account'] % record) ,
-#                                 Keepass1CSVEscape(format['2_Login Name'] % record) ,
-#                                 Keepass1CSVEscape(format['3_Password'] % record) ,
-#                                 Keepass1CSVEscape(format['4_Web Site'] % record) ,
-#                                 Keepass1CSVEscape(format['5_Comments'] % record)))
             except:
 #            except KeyError:
                 print("\nError in converting record:")
