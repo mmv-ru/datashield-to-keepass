@@ -19,6 +19,7 @@ import csv
 import cStringIO
 import codecs
 import os
+import re
 # format template
 import pprint
 import os.path
@@ -292,11 +293,13 @@ def outputCSV(File, records, templates, formats):
             format = formats[record['template']]
             add_default(record, templates)
             try:
-                writer.writerow((format['1_Account'] % record ,
-                                 format['2_Login Name'] % record ,
-                                 format['3_Password'] % record ,
-                                 format['4_Web Site'] % record ,
-                                 format['5_Comments'] % record))
+                writer.writerow(map(lambda x: Keepass1CSVEscape(format[x] % record),
+                                    ['1_Account', '2_Login Name', '3_Password', '4_Web Site', '5_Comments']))
+#                    (Keepass1CSVEscape(format['1_Account'] % record) ,
+#                                 Keepass1CSVEscape(format['2_Login Name'] % record) ,
+#                                 Keepass1CSVEscape(format['3_Password'] % record) ,
+#                                 Keepass1CSVEscape(format['4_Web Site'] % record) ,
+#                                 Keepass1CSVEscape(format['5_Comments'] % record)))
             except:
 #            except KeyError:
                 print("\nError in converting record:")
@@ -306,6 +309,12 @@ def outputCSV(File, records, templates, formats):
                 raise
     finally:
         f.close()
+
+def Keepass1CSVEscape(str):
+    """ KeepassCSV require Replace " bu \" and \ by \\ 
+        http://keepass.info/help/base/importexport.html#csv
+        But " replaced automaticaly by CSV Dialect """
+    return re.sub(r'([\\])', r'\\\1', str)
 
 if __name__ == '__main__':
     main()
